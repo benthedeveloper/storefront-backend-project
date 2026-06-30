@@ -17,14 +17,14 @@ async function main(): Promise<void> {
   try {
     await client.connect();
 
-    const result = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
+    // Drop database if it exists
+    const dropQuery = `DROP DATABASE IF EXISTS "${dbName}"`;
+    await client.query(dropQuery);
+    console.log(`Dropped database ${dbName}`);
 
-    if (result.rowCount === 0) {
-      await client.query(`CREATE DATABASE "${dbName}"`);
-      console.log(`Created database ${dbName}`);
-    } else {
-      console.log(`Database ${dbName} already exists`);
-    }
+    // Create fresh database
+    await client.query(`CREATE DATABASE "${dbName}"`);
+    console.log(`Created database ${dbName}`);
   } finally {
     await client.end();
   }

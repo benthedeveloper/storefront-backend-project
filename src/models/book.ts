@@ -1,4 +1,5 @@
 import client from '../database.ts';
+import { toCamelCase } from '../helpers/index.ts';
 
 export type Book = {
   id: number;
@@ -8,13 +9,16 @@ export type Book = {
   summary: string;
 };
 
+export type CreateBookInput = Omit<Book, 'id'>;
+export type UpdateBookInput = Omit<Book, 'id'>;
+
 export class BookStore {
   // CREATE
-  async create(newBook: Book): Promise<Book> {
+  async create(newBook: CreateBookInput): Promise<Book> {
     try {
       const conn = await client.connect();
       const sql = `
-    INSERT INTO books (title, author, totalPages, summary) 
+    INSERT INTO books (title, author, total_pages, summary) 
     VALUES ($1, $2, $3, $4) 
     RETURNING *;
   `;
@@ -22,7 +26,7 @@ export class BookStore {
       const values = [newBook.title, newBook.author, newBook.totalPages, newBook.summary];
       const { rows } = await conn.query(sql, values);
       conn.release();
-      return rows[0];
+      return toCamelCase(rows[0]) as Book;
     } catch (error) {
       throw new Error(`Cannot create book: ${error}`);
     }
@@ -36,7 +40,7 @@ export class BookStore {
       const sql = 'SELECT * FROM books';
       const result = await conn.query(sql);
       conn.release();
-      return result.rows;
+      return result.rows.map(toCamelCase) as Book[];
     } catch (error) {
       throw new Error(`Cannot get books: ${error}`);
     }
@@ -52,14 +56,14 @@ export class BookStore {
 
       conn.release();
 
-      return result.rows[0];
+      return toCamelCase(result.rows[0]) as Book;
     } catch (err) {
       throw new Error(`Could not find book ${id}. Error: ${err}`);
     }
   }
 
   // UPDATE
-  async update(id: string, book: Book): Promise<Book | null> {
+  async update(id: string, book: UpdateBookInput): Promise<Book | null> {
     try {
       const conn = await client.connect();
       const keys = Object.keys(book);
@@ -96,7 +100,7 @@ export class BookStore {
       const { rows } = await conn.query(query, values);
 
       // Return the updated row, or null if the book didn't exist
-      return rows[0] || null;
+      return rows[0] ? (toCamelCase(rows[0]) as Book) : null;
     } catch (error) {
       throw new Error(`Error updating book: ${error}`);
     }
