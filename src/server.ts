@@ -1,8 +1,20 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { type Request, type Response } from 'express';
 import bodyParser from 'body-parser';
 
+const { SERVER_PORT } = process.env;
+
+if (!SERVER_PORT) {
+  throw new Error('SERVER_PORT is not defined in the environment variables');
+}
+
+// TEMP DEBUG:
+console.log('SERVER_PORT: ', SERVER_PORT);
+
 const app: express.Application = express();
-const address: string = '0.0.0.0:3000';
+const address: string = `0.0.0.0:${SERVER_PORT}`;
 
 app.use(bodyParser.json());
 
@@ -10,6 +22,6 @@ app.get('/', function (req: Request, res: Response) {
   res.send('Hello World!');
 });
 
-app.listen(3000, function () {
+app.listen(SERVER_PORT, function () {
   console.log(`starting app on: ${address}`);
 });
