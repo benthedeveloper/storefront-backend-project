@@ -10,9 +10,6 @@ if (!SERVER_PORT) {
   throw new Error('SERVER_PORT is not defined in the environment variables');
 }
 
-// TEMP DEBUG:
-console.log('SERVER_PORT: ', SERVER_PORT);
-
 const app: express.Application = express();
 const address: string = `0.0.0.0:${SERVER_PORT}`;
 
