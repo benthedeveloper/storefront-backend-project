@@ -1,6 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express, { type Request, type Response } from 'express';
 import bodyParser from 'body-parser';
 

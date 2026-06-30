@@ -4,10 +4,14 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
-    "start": "node src/server.ts",
+    "start": "node --env-file=.env src/server.ts",
     "watch": "tsc-watch --esModuleInterop src/server.ts --outDir ./dist --onSuccess \"node ./dist/server.js\"",
-    "test": "jasmine-ts",
-    "tsc": "tsc"
+    "test": "dotenv -e .env.test -- db-migrate up -e test && jasmine-ts && dotenv -e .env.test -- db-migrate db:drop -e test",
+    "tsc": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
   },
   "author": "Ben Harrison",
   "license": "ISC",
@@ -16,19 +20,28 @@
     "body-parser": "^2.3.0",
     "db-migrate": "^1.0.0-beta.35",
     "db-migrate-pg": "^1.5.2",
-    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jasmine": "^6.3.0",
+    "jasmine-spec-reporter": "^7.0.0",
+    "jasmine-ts": "^0.4.0",
     "pg": "^8.22.0",
     "typescript": "^6.0.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tsconfig/node-lts": "^24.0.0",
     "@types/express": "^5.0.6",
     "@types/jasmine": "^6.0.0",
+    "@types/node": "^26.0.1",
     "@types/pg": "^8.20.0",
-    "jasmine": "^6.3.0",
-    "jasmine-spec-reporter": "^7.0.0",
-    "jasmine-ts": "^0.4.0",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.7.0",
+    "jiti": "^2.7.0",
+    "prettier": "^3.9.4",
     "ts-node": "^10.9.2",
-    "tsc-watch": "^7.2.0"
+    "tsc-watch": "^7.2.0",
+    "typescript-eslint": "^8.62.1"
   }
 }

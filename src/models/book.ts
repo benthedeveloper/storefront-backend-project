@@ -1,4 +1,4 @@
-import client from '../database';
+import client from '../database.ts';
 
 export type Book = {
   id: number;
@@ -19,12 +19,7 @@ export class BookStore {
     RETURNING *;
   `;
       // const result = await conn.query(sql);
-      const values = [
-        newBook.title,
-        newBook.author,
-        newBook.totalPages,
-        newBook.summary,
-      ];
+      const values = [newBook.title, newBook.author, newBook.totalPages, newBook.summary];
       const { rows } = await conn.query(sql, values);
       conn.release();
       return rows[0];
