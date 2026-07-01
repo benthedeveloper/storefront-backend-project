@@ -15,57 +15,57 @@ export type UpdateBookInput = Omit<Book, 'id'>;
 export class BookStore {
   // CREATE
   async create(newBook: CreateBookInput): Promise<Book> {
+    const conn = await client.connect();
     try {
-      const conn = await client.connect();
       const sql = `
-    INSERT INTO books (title, author, total_pages, summary) 
-    VALUES ($1, $2, $3, $4) 
-    RETURNING *;
-  `;
+        INSERT INTO books (title, author, total_pages, summary) 
+        VALUES ($1, $2, $3, $4) 
+        RETURNING *;
+      `;
       // const result = await conn.query(sql);
       const values = [newBook.title, newBook.author, newBook.totalPages, newBook.summary];
       const { rows } = await conn.query(sql, values);
-      conn.release();
       return toCamelCase(rows[0]) as Book;
     } catch (error) {
       throw new Error(`Cannot create book: ${error}`);
+    } finally {
+      conn.release();
     }
   }
 
   // READ
   // Get all books
   async index(): Promise<Book[]> {
+    const conn = await client.connect();
     try {
-      const conn = await client.connect();
       const sql = 'SELECT * FROM books';
       const result = await conn.query(sql);
-      conn.release();
       return result.rows.map(toCamelCase) as Book[];
     } catch (error) {
       throw new Error(`Cannot get books: ${error}`);
+    } finally {
+      conn.release();
     }
   }
 
   // Get book by id
   async show(id: string): Promise<Book> {
+    const conn = await client.connect();
     try {
       const sql = 'SELECT * FROM books WHERE id=($1)';
-      const conn = await client.connect();
-
       const result = await conn.query(sql, [id]);
-
-      conn.release();
-
       return toCamelCase(result.rows[0]) as Book;
     } catch (err) {
       throw new Error(`Could not find book ${id}. Error: ${err}`);
+    } finally {
+      conn.release();
     }
   }
 
   // UPDATE
   async update(id: string, book: UpdateBookInput): Promise<Book | null> {
+    const conn = await client.connect();
     try {
-      const conn = await client.connect();
       const keys = Object.keys(book);
 
       // Handle empty update payloads
@@ -92,10 +92,11 @@ export class BookStore {
 
       // Construct the final query string
       const query = `
-    UPDATE books
-    WHERE id = $${idParamIndex}
-    RETURNING *;
-  `;
+        UPDATE books
+        SET ${setParts.join(', ')}
+        WHERE id = $${idParamIndex}
+        RETURNING *;
+        `;
 
       const { rows } = await conn.query(query, values);
 
@@ -103,13 +104,15 @@ export class BookStore {
       return rows[0] ? (toCamelCase(rows[0]) as Book) : null;
     } catch (error) {
       throw new Error(`Error updating book: ${error}`);
+    } finally {
+      conn.release();
     }
   }
 
   // DELETE
   async hardDelete(id: string): Promise<boolean> {
+    const conn = await client.connect();
     try {
-      const conn = await client.connect();
       const query = `
         DELETE FROM books
         WHERE id = $1
@@ -123,6 +126,8 @@ export class BookStore {
       return (rowCount ?? 0) > 0;
     } catch (error) {
       throw new Error(`Error hard deleting book: ${error}`);
+    } finally {
+      conn.release();
     }
   }
 }
