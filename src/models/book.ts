@@ -27,7 +27,7 @@ export class BookStore {
       const { rows } = await conn.query(sql, values);
       return toCamelCase(rows[0]) as Book;
     } catch (error) {
-      throw new Error(`Cannot create book: ${error}`);
+      throw new Error(`Cannot create book ${newBook.title}`, { cause: error });
     } finally {
       conn.release();
     }
@@ -42,7 +42,7 @@ export class BookStore {
       const result = await conn.query(sql);
       return result.rows.map(toCamelCase) as Book[];
     } catch (error) {
-      throw new Error(`Cannot get books: ${error}`);
+      throw new Error(`Cannot get books`, { cause: error });
     } finally {
       conn.release();
     }
@@ -56,7 +56,7 @@ export class BookStore {
       const result = await conn.query(sql, [id]);
       return toCamelCase(result.rows[0]) as Book;
     } catch (err) {
-      throw new Error(`Could not find book ${id}. Error: ${err}`);
+      throw new Error(`Could not find book ${id}`, { cause: err });
     } finally {
       conn.release();
     }
@@ -103,7 +103,7 @@ export class BookStore {
       // Return the updated row, or null if the book didn't exist
       return rows[0] ? (toCamelCase(rows[0]) as Book) : null;
     } catch (error) {
-      throw new Error(`Error updating book: ${error}`);
+      throw new Error(`Error updating book ${id}`, { cause: error });
     } finally {
       conn.release();
     }
@@ -125,7 +125,7 @@ export class BookStore {
       // rowCount will be 0 if the ID did not exist
       return (rowCount ?? 0) > 0;
     } catch (error) {
-      throw new Error(`Error hard deleting book: ${error}`);
+      throw new Error(`Error hard deleting book ${id}`, { cause: error });
     } finally {
       conn.release();
     }
