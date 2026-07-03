@@ -1,4 +1,5 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 import routes from './routes/index.ts';
 
 const { SERVER_PORT } = process.env;
@@ -10,6 +11,7 @@ if (!SERVER_PORT) {
 const app: express.Application = express();
 const address: string = `0.0.0.0:${SERVER_PORT}`;
 
+app.use(bodyParser.json());
 app.use('/api', routes);
 
 app.listen(SERVER_PORT, () => {
