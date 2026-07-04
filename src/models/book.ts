@@ -22,7 +22,6 @@ export class BookStore {
         VALUES ($1, $2, $3, $4) 
         RETURNING *;
       `;
-      // const result = await conn.query(sql);
       const values = [newBook.title, newBook.author, newBook.totalPages, newBook.summary];
       const { rows } = await conn.query(sql, values);
       return toCamelCase(rows[0]) as Book;
@@ -75,7 +74,7 @@ export class BookStore {
 
       // Dynamically build the SET clause mapping camelCase to snake_case if needed
       const setParts: string[] = [];
-      const values: any[] = [];
+      const values: Array<string | number> = [];
 
       keys.forEach((key, index) => {
         // Convert camelCase field to snake_case for Postgres columns
@@ -83,7 +82,11 @@ export class BookStore {
 
         // $1, $2, etc. (index + 1 because SQL parameters are 1-indexed)
         setParts.push(`${columnName} = $${index + 1}`);
-        values.push((book as any)[key]);
+        const value = (book as Record<string, string | number | undefined>)[key];
+        if (value === undefined) {
+          throw new Error(`Invalid value for update field ${key}`);
+        }
+        values.push(value);
       });
 
       // Add the ID as the final query parameter
@@ -120,7 +123,7 @@ export class BookStore {
       `;
 
       const values = [id];
-      const { rowCount, rows } = await conn.query(query, values);
+      const { rowCount } = await conn.query(query, values);
 
       // rowCount will be 0 if the ID did not exist
       return (rowCount ?? 0) > 0;
