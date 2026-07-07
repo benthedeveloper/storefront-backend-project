@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authenticateToken } from '../../middleware/auth.middleware.ts';
 import { index, getUser, createUser, authenticateUser, updateUser, deleteUser } from '../../handlers/users.ts';
 
 const users = Router();
@@ -15,10 +16,10 @@ users.post('/', createUser);
 // Authenticate route
 users.post('/authenticate', authenticateUser);
 
-// Edit route
-users.put('/:id', updateUser);
+// Edit route - protected by authentication middleware
+users.put('/:id', authenticateToken, updateUser);
 
-// Delete route
-users.delete('/:id', deleteUser);
+// Delete route - protected by authentication middleware
+users.delete('/:id', authenticateToken, deleteUser);
 
 export default users;

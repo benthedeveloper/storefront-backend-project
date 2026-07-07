@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authenticateToken } from '../../middleware/auth.middleware.ts';
 import { index, getBook, createBook, updateBook, deleteBook } from '../../handlers/books.ts';
 
 const books = Router();
@@ -9,13 +10,13 @@ books.get('/', index);
 // Show route
 books.get('/:id', getBook);
 
-// Create route
-books.post('/', createBook);
+// Create route - protected by authentication middleware
+books.post('/', authenticateToken, createBook);
 
-// Edit route
-books.put('/:id', updateBook);
+// Edit route - protected by authentication middleware
+books.put<{ id: string }>('/:id', authenticateToken, updateBook);
 
-// Delete route
-books.delete('/:id', deleteBook);
+// Delete route - protected by authentication middleware
+books.delete<{ id: string }>('/:id', authenticateToken, deleteBook);
 
 export default books;

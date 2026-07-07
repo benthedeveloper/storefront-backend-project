@@ -1,7 +1,9 @@
 import { type Request, type Response } from 'express';
+import jwt from 'jsonwebtoken';
+import { type AuthenticatedRequest } from '../middleware/auth.middleware.ts';
 import { UserStore, type CreateUserInput, type UpdateUserInput } from '../models/user.ts';
 
-interface UserRouteParams {
+interface GetUserRouteParams {
   id: string;
 }
 
@@ -19,8 +21,9 @@ export const index = async (_req: Request, res: Response) => {
 };
 
 // Get user by ID
-export const getUser = async (req: Request<UserRouteParams>, res: Response) => {
+export const getUser = async (req: Request<GetUserRouteParams>, res: Response) => {
   const { id } = req.params;
+
   try {
     const foundUser = await store.show(id);
     if (!foundUser) {
@@ -38,6 +41,7 @@ export const getUser = async (req: Request<UserRouteParams>, res: Response) => {
 export const createUser = async (req: Request, res: Response) => {
   // const { title, author, totalPages, summary }: CreateUserInput = req.body;
   const { username, password, firstName, lastName }: CreateUserInput = req.body;
+
   if (!username || !password || !firstName || !lastName) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
@@ -46,7 +50,14 @@ export const createUser = async (req: Request, res: Response) => {
 
   try {
     const createdUser = await store.create(payload);
-    res.status(201).json(createdUser);
+
+    const token = jwt.sign(
+      { sub: createdUser.id, username: createdUser.username },
+      process.env.TOKEN_SECRET as string,
+      { expiresIn: '1h' },
+    );
+
+    res.status(201).json({ user: createdUser, token });
   } catch (error) {
     console.error('createUser error', error);
     res.status(500).json({ error: 'Unable to create user' });
@@ -55,7 +66,6 @@ export const createUser = async (req: Request, res: Response) => {
 
 // Authenticate a user
 export const authenticateUser = async (req: Request, res: Response) => {
-  // TODO implement authenticate
   const { username, password } = req.body;
 
   try {
@@ -65,11 +75,13 @@ export const authenticateUser = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid user credentials' });
     }
 
-    res.status(200).json({
-      message: 'Login successful',
-      user: authenticatedUser,
-      // token: 'your-jwt-token'  // <--- TODO JWT token here?
-    });
+    const token = jwt.sign(
+      { sub: authenticatedUser.id, username: authenticatedUser.username },
+      process.env.TOKEN_SECRET as string,
+      { expiresIn: '1h' },
+    );
+
+    res.status(200).json({ user: authenticatedUser, token });
   } catch (error) {
     console.error('authenticateUser error:', error);
     res.status(500).json({ error: 'There was an error authenticating the user' });
@@ -77,9 +89,22 @@ export const authenticateUser = async (req: Request, res: Response) => {
 };
 
 // Update a user by ID
-export const updateUser = async (req: Request<UserRouteParams>, res: Response) => {
-  const { id } = req.params;
+export const updateUser = async (req: AuthenticatedRequest, res: Response) => {
+  const idParam = req.params.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Invalid user id' });
+  }
+
+  const authenticatedUser = req.user;
+
+  if (!authenticatedUser || authenticatedUser.id !== Number(id)) {
+    return res.status(403).json({ error: 'You can only update your own account' });
+  }
+
   const { firstName, lastName, username, password }: UpdateUserInput = req.body;
+
   if (!firstName && !lastName && !username && !password) {
     return res.status(400).json({ error: 'Missing a field to update' });
   }
@@ -116,8 +141,19 @@ export const updateUser = async (req: Request<UserRouteParams>, res: Response) =
 };
 
 // Delete a user
-export const deleteUser = async (req: Request<UserRouteParams>, res: Response) => {
-  const { id } = req.params;
+export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
+  const idParam = req.params.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Invalid user id' });
+  }
+
+  const authenticatedUser = req.user;
+
+  if (!authenticatedUser || authenticatedUser.id !== Number(id)) {
+    return res.status(403).json({ error: 'You can only delete your own account' });
+  }
 
   try {
     const deleteResult = await store.hardDelete(id);
