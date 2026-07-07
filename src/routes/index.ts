@@ -1,5 +1,6 @@
 import express from 'express';
 import books from './api/books.ts';
+import users from './api/users.ts';
 
 const routes = express.Router();
 
@@ -9,5 +10,6 @@ routes.get('/', (req, res) => {
 });
 
 routes.use('/books', books);
+routes.use('/users', users);
 
 export default routes;
