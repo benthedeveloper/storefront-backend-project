@@ -73,7 +73,12 @@ export class UserStore {
         return null;
       }
 
-      return toCamelCase(user) as User;
+      return {
+        id: user.id,
+        username: user.username,
+        firstName: user.first_name,
+        lastName: user.last_name,
+      };
     } catch (error) {
       throw new Error(`Unable to authenticate user ${username}`, { cause: error });
     } finally {
