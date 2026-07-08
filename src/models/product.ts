@@ -8,11 +8,42 @@ export type Product = {
 };
 
 export type CreateProductInput = Omit<Product, 'id'>;
-export type UpdateProductInput = Omit<Product, 'id'>;
+export type UpdateProductInput = Partial<CreateProductInput>;
+
+const mapProduct = (row: Record<string, unknown>): Product => {
+  const product = toCamelCase(row) as Record<string, unknown>;
+
+  return {
+    id: Number(product.id),
+    name: String(product.name),
+    price: Number(product.price),
+  };
+};
+
+const validateProductInput = (product: Partial<CreateProductInput>, context: string): void => {
+  if (product.price !== undefined) {
+    const price = product.price;
+
+    if (typeof price !== 'number' || !Number.isFinite(price)) {
+      throw new Error(`${context} requires a numeric price`);
+    }
+
+    if (price < 0) {
+      throw new Error(`${context} requires a non-negative price`);
+    }
+
+    const decimalPlaces = (price.toString().split('.')[1] ?? '').length;
+    if (decimalPlaces > 2) {
+      throw new Error(`${context} requires at most two decimal places`);
+    }
+  }
+};
 
 export class ProductStore {
   // CREATE
   async create(newProduct: CreateProductInput): Promise<Product> {
+    validateProductInput(newProduct, 'Product creation');
+
     const conn = await client.connect();
     try {
       const sql = `
@@ -22,7 +53,7 @@ export class ProductStore {
       `;
       const values = [newProduct.name, newProduct.price];
       const { rows } = await conn.query(sql, values);
-      return toCamelCase(rows[0]) as Product;
+      return mapProduct(rows[0]);
     } catch (error) {
       throw new Error(`Error creating product`, { cause: error });
     } finally {
@@ -37,7 +68,7 @@ export class ProductStore {
     try {
       const sql = 'SELECT * FROM products';
       const result = await conn.query(sql);
-      return result.rows.map(toCamelCase) as Product[];
+      return result.rows.map((row) => mapProduct(row));
     } catch (error) {
       throw new Error(`Cannot get products`, { cause: error });
     } finally {
@@ -51,7 +82,7 @@ export class ProductStore {
     try {
       const sql = 'SELECT * FROM products WHERE id=($1)';
       const result = await conn.query(sql, [id]);
-      return toCamelCase(result.rows[0]) as Product;
+      return mapProduct(result.rows[0]);
     } catch (err) {
       throw new Error(`Could not find product ${id}`, { cause: err });
     } finally {
@@ -61,6 +92,8 @@ export class ProductStore {
 
   // UPDATE
   async update(id: string, product: UpdateProductInput): Promise<Product | null> {
+    validateProductInput(product, 'Product update');
+
     const conn = await client.connect();
     try {
       const keys = Object.keys(product);
@@ -102,7 +135,7 @@ export class ProductStore {
       const { rows } = await conn.query(query, values);
 
       // Return the updated row, or null if the product didn't exist
-      return rows[0] ? (toCamelCase(rows[0]) as Product) : null;
+      return rows[0] ? mapProduct(rows[0]) : null;
     } catch (error) {
       throw new Error(`Error updating product ${id}`, { cause: error });
     } finally {
