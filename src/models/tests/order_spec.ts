@@ -1,8 +1,10 @@
 import { type Order, type CreateOrderInput, OrderStore } from '../order.ts';
 import { type User, type CreateUserInput, UserStore } from '../user.ts';
+import { ProductStore, type Product } from '../product.ts';
 
 const store = new OrderStore();
 const userStore = new UserStore();
+const productStore = new ProductStore();
 const testOrderToCreate: Omit<CreateOrderInput, 'userId'> = {
   status: 'active',
 };
@@ -16,6 +18,15 @@ const createTestUser = async (): Promise<User> => {
   };
 
   return userStore.create(testUserToCreate);
+};
+
+const createTestProduct = async (): Promise<Product> => {
+  const testProductToCreate = {
+    name: `Test product ${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+    price: 10.99,
+  };
+
+  return productStore.create(testProductToCreate);
 };
 
 describe('Order Model', () => {
@@ -132,6 +143,78 @@ describe('Order Model', () => {
 
     it('hardDelete method should delete the order', async () => {
       const result = await store.hardDelete(String(testOrder.id));
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('add product to order tests', () => {
+    let testUser: User;
+    let testOrder: Order;
+    let testProduct: Product;
+
+    beforeAll(async () => {
+      testUser = await createTestUser();
+      testOrder = await store.create({ ...testOrderToCreate, userId: testUser.id });
+      testProduct = await createTestProduct();
+    });
+
+    afterAll(async () => {
+      await store.removeProduct(String(testOrder.id), String(testProduct.id));
+      await store.hardDelete(String(testOrder.id));
+      await userStore.hardDelete(String(testUser.id));
+      await productStore.hardDelete(String(testProduct.id));
+    });
+
+    it('addProduct method should add a product to the order', async () => {
+      const quantity = 2;
+      const result = await store.addProduct(quantity, String(testOrder.id), String(testProduct.id));
+      expect(result).toEqual(
+        jasmine.objectContaining({
+          quantity,
+          orderId: testOrder.id,
+          productId: testProduct.id,
+        }),
+      );
+    });
+
+    it('addProduct method should reject products for non-active orders', async () => {
+      const closedOrder = await store.create({ status: 'completed', userId: testUser.id });
+      const closedProduct = await createTestProduct();
+
+      try {
+        await store.addProduct(1, String(closedOrder.id), String(closedProduct.id));
+        fail('Expected addProduct to reject closed orders');
+      } catch (error) {
+        expect(error).toEqual(jasmine.any(Error));
+        expect((error as Error).message).toContain('active');
+      } finally {
+        await store.hardDelete(String(closedOrder.id));
+        await productStore.hardDelete(String(closedProduct.id));
+      }
+    });
+  });
+
+  describe('remove product from order tests', () => {
+    let testUser: User;
+    let testOrder: Order;
+    let testProduct: Product;
+
+    beforeAll(async () => {
+      testUser = await createTestUser();
+      testOrder = await store.create({ ...testOrderToCreate, userId: testUser.id });
+      testProduct = await createTestProduct();
+      await store.addProduct(2, String(testOrder.id), String(testProduct.id));
+    });
+
+    afterAll(async () => {
+      await store.removeProduct(String(testOrder.id), String(testProduct.id));
+      await store.hardDelete(String(testOrder.id));
+      await userStore.hardDelete(String(testUser.id));
+      await productStore.hardDelete(String(testProduct.id));
+    });
+
+    it('removeProduct method should remove a product from the order', async () => {
+      const result = await store.removeProduct(String(testOrder.id), String(testProduct.id));
       expect(result).toBe(true);
     });
   });

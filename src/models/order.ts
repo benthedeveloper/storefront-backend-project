@@ -14,6 +14,13 @@ export type UpdateOrderInput = {
   userId?: number;
 };
 
+export type OrderProduct = {
+  id: number;
+  quantity: number;
+  orderId: number;
+  productId: number;
+};
+
 const mapOrder = (row: Record<string, unknown>): Order => {
   const order = toCamelCase(row) as Record<string, unknown>;
 
@@ -21,6 +28,17 @@ const mapOrder = (row: Record<string, unknown>): Order => {
     id: Number(order.id),
     status: String(order.status),
     userId: Number(order.userId),
+  };
+};
+
+const mapOrderProduct = (row: Record<string, unknown>): OrderProduct => {
+  const product = toCamelCase(row) as Record<string, unknown>;
+
+  return {
+    id: Number(product.id),
+    quantity: Number(product.quantity),
+    orderId: Number(product.orderId),
+    productId: Number(product.productId),
   };
 };
 
@@ -133,6 +151,57 @@ export class OrderStore {
       return (rowCount ?? 0) > 0;
     } catch (error) {
       throw new Error(`Error hard deleting order ${id}`, { cause: error });
+    } finally {
+      conn.release();
+    }
+  }
+
+  // Add a product to an order
+  async addProduct(quantity: number, orderId: string, productId: string): Promise<OrderProduct> {
+    const conn = await client.connect();
+    try {
+      const orderResult = await conn.query('SELECT status FROM orders WHERE id = $1', [orderId]);
+
+      if (orderResult.rows.length === 0) {
+        throw new Error(`Order ${orderId} not found`);
+      }
+
+      const status = String(orderResult.rows[0].status).toLowerCase();
+      if (status !== 'active') {
+        throw new Error(`Cannot add product to a non-active order (${status})`);
+      }
+
+      const sql = `
+        INSERT INTO order_products (quantity, order_id, product_id)
+        VALUES ($1, $2, $3)
+        RETURNING *;
+      `;
+      const values = [quantity, orderId, productId];
+      const result = await conn.query(sql, values);
+      return mapOrderProduct(result.rows[0]);
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Cannot add product')) {
+        throw error;
+      }
+      throw new Error(`Could not add product ${productId} to order ${orderId}`, { cause: error });
+    } finally {
+      conn.release();
+    }
+  }
+
+  // Remove a product from an order
+  async removeProduct(orderId: string, productId: string): Promise<boolean> {
+    const conn = await client.connect();
+    try {
+      const query = `
+        DELETE FROM order_products
+        WHERE order_id = $1 AND product_id = $2
+        RETURNING id;
+      `;
+      const { rowCount } = await conn.query(query, [orderId, productId]);
+      return (rowCount ?? 0) > 0;
+    } catch (error) {
+      throw new Error(`Error removing product from order`, { cause: error });
     } finally {
       conn.release();
     }
