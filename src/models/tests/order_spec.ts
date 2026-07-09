@@ -1,4 +1,5 @@
 import { type Order, type CreateOrderInput, OrderStore } from '../order.ts';
+import { type OrderStatus } from '../orderStatus.ts';
 import { type User, type CreateUserInput, UserStore } from '../user.ts';
 import { ProductStore, type Product } from '../product.ts';
 
@@ -69,6 +70,18 @@ describe('Order Model', () => {
         await userStore.hardDelete(String(user.id));
       }
     });
+
+    it('create method should reject an invalid status', async () => {
+      const user = await createTestUser();
+
+      try {
+        await expectAsync(
+          store.create({ status: 'invalid' as unknown as OrderStatus, userId: user.id }),
+        ).toBeRejected();
+      } finally {
+        await userStore.hardDelete(String(user.id));
+      }
+    });
   });
 
   describe('read order tests', () => {
@@ -125,6 +138,14 @@ describe('Order Model', () => {
           userId: alternateUser.id,
         }),
       );
+    });
+
+    it('update method should reject an invalid status', async () => {
+      await expectAsync(
+        store.update(String(testOrder.id), {
+          status: 'invalid' as unknown as OrderStatus,
+        }),
+      ).toBeRejected();
     });
   });
 

@@ -1,5 +1,6 @@
 import { type Request, type Response } from 'express';
 import { OrderStore, type CreateOrderInput, type UpdateOrderInput } from '../models/order.ts';
+import { isOrderStatus } from '../models/orderStatus.ts';
 
 interface GetOrderRouteParams {
   id: string;
@@ -37,6 +38,12 @@ export const getOrder = async (req: Request<GetOrderRouteParams>, res: Response)
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
   const { status, userId }: CreateOrderInput = req.body;
+
+  if (!isOrderStatus(status)) {
+    res.status(400).json({ error: 'Invalid status' });
+    return;
+  }
+
   try {
     const newOrder = await store.create({ status, userId });
     res.status(201).json(newOrder);
@@ -51,7 +58,7 @@ export const updateOrder = async (req: Request<GetOrderRouteParams>, res: Respon
   const { id } = req.params;
   const { status } = req.body as UpdateOrderInput;
 
-  if (typeof status !== 'string') {
+  if (!isOrderStatus(status)) {
     res.status(400).json({ error: 'Invalid status' });
     return;
   }

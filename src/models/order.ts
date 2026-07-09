@@ -1,16 +1,17 @@
 import client from '../database.ts';
 import { toCamelCase } from '../helpers/index.ts';
+import { isOrderStatus, type OrderStatus } from './orderStatus.ts';
 
 export type Order = {
   id: number;
-  status: string;
+  status: OrderStatus;
   userId: number;
 };
 
 export type CreateOrderInput = Omit<Order, 'id'>;
 
 export type UpdateOrderInput = {
-  status?: string;
+  status?: OrderStatus;
   userId?: number;
 };
 
@@ -21,12 +22,20 @@ export type OrderProduct = {
   productId: number;
 };
 
+const validateOrderStatus = (status: unknown): OrderStatus => {
+  if (!isOrderStatus(status)) {
+    throw new Error(`Invalid order status: ${String(status)}`);
+  }
+
+  return status;
+};
+
 const mapOrder = (row: Record<string, unknown>): Order => {
   const order = toCamelCase(row) as Record<string, unknown>;
 
   return {
     id: Number(order.id),
-    status: String(order.status),
+    status: String(order.status) as OrderStatus,
     userId: Number(order.userId),
   };
 };
@@ -45,6 +54,8 @@ const mapOrderProduct = (row: Record<string, unknown>): OrderProduct => {
 export class OrderStore {
   // CREATE
   async create(newOrder: CreateOrderInput): Promise<Order> {
+    const validatedStatus = validateOrderStatus(newOrder.status);
+
     const conn = await client.connect();
     try {
       const sql = `
@@ -52,7 +63,7 @@ export class OrderStore {
         VALUES ($1, $2) 
         RETURNING *;
       `;
-      const values = [newOrder.status, newOrder.userId];
+      const values = [validatedStatus, newOrder.userId];
       const { rows } = await conn.query(sql, values);
       return mapOrder(rows[0]);
     } catch (error) {
@@ -101,8 +112,9 @@ export class OrderStore {
       let parameterIndex = 1;
 
       if (order.status !== undefined) {
+        const validatedStatus = validateOrderStatus(order.status);
         fieldsToUpdate.push(`status = $${parameterIndex}`);
-        values.push(order.status);
+        values.push(validatedStatus);
         parameterIndex += 1;
       }
 
