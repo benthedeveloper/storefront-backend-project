@@ -10,7 +10,7 @@ export type Product = {
 export type CreateProductInput = Omit<Product, 'id'>;
 export type UpdateProductInput = Partial<CreateProductInput>;
 
-const mapProduct = (row: Record<string, unknown>): Product => {
+export const mapProduct = (row: Record<string, unknown>): Product => {
   const product = toCamelCase(row) as Record<string, unknown>;
 
   return {

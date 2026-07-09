@@ -11,6 +11,7 @@ describe('DashboardQueries', () => {
   let productStore: ProductStore;
   let testUser: User;
   let testProduct: Product;
+  let higherPriceProduct: Product;
   let testOrderId: number;
 
   beforeAll(async () => {
@@ -33,6 +34,11 @@ describe('DashboardQueries', () => {
       price: 12.34,
     });
 
+    higherPriceProduct = await productStore.create({
+      name: `Dashboard product ${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      price: 45.67,
+    });
+
     const testOrder = await orderStore.create({
       status: 'active',
       userId: testUser.id,
@@ -47,6 +53,7 @@ describe('DashboardQueries', () => {
     await orderStore.hardDelete(String(testOrderId));
     await userStore.hardDelete(String(testUser.id));
     await productStore.hardDelete(String(testProduct.id));
+    await productStore.hardDelete(String(higherPriceProduct.id));
   });
 
   describe('productsInOrders', () => {
@@ -62,6 +69,65 @@ describe('DashboardQueries', () => {
           }),
         ]),
       );
+    });
+  });
+
+  describe('usersWithOrders', () => {
+    it('should return all users that have made an order', async () => {
+      const users = await dashboardQueries.usersWithOrders();
+
+      expect(users).toEqual(
+        jasmine.arrayContaining([
+          jasmine.objectContaining({
+            id: testUser.id,
+            username: testUser.username,
+            firstName: testUser.firstName,
+            lastName: testUser.lastName,
+          }),
+        ]),
+      );
+    });
+  });
+
+  describe('getMostExpensiveProducts', () => {
+    it('should return the requested number of products in descending price order', async () => {
+      const numProducts = 2;
+      const products = await dashboardQueries.getMostExpensiveProducts(numProducts);
+
+      expect(products.length).toBe(numProducts);
+
+      const relevantProducts = products.filter(
+        (product) => product.name === testProduct.name || product.name === higherPriceProduct.name,
+      );
+
+      expect(relevantProducts).toEqual([
+        jasmine.objectContaining({
+          name: higherPriceProduct.name,
+          price: higherPriceProduct.price,
+        }),
+        jasmine.objectContaining({
+          name: testProduct.name,
+          price: testProduct.price,
+        }),
+      ]);
+
+      const [firstProduct, secondProduct] = relevantProducts;
+      expect(firstProduct).toBeDefined();
+      expect(secondProduct).toBeDefined();
+
+      if (!firstProduct || !secondProduct) {
+        throw new Error('Expected both matching products to be present');
+      }
+
+      expect(firstProduct.price).toBeGreaterThanOrEqual(secondProduct.price);
+    });
+
+    it('should throw an error when the requested product count is invalid', async () => {
+      const invalidValues = [-1, 0.5, '2' as unknown as number];
+
+      for (const invalidValue of invalidValues) {
+        await expectAsync(dashboardQueries.getMostExpensiveProducts(invalidValue)).toBeRejected();
+      }
     });
   });
 });
