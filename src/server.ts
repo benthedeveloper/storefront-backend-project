@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import bodyParser from 'body-parser';
 import routes from './routes/index.ts';
 
@@ -10,7 +11,11 @@ if (!SERVER_PORT) {
 
 const app: express.Application = express();
 const address: string = `0.0.0.0:${SERVER_PORT}`;
+const corsOptions: cors.CorsOptions = {
+  origin: process.env.CORS_ORIGIN,
+};
 
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use('/api', routes);
 
