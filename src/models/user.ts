@@ -100,11 +100,16 @@ export class UserStore {
     }
   }
 
-  async show(id: string): Promise<User> {
+  async show(id: string): Promise<User | null> {
     const conn = await client.connect();
     try {
       const sql = `SELECT id, username, first_name, last_name FROM users WHERE id = $1`;
       const result = await conn.query(sql, [id]);
+
+      if (result.rows.length === 0) {
+        return null;
+      }
+
       return toCamelCase(result.rows[0]) as User;
     } catch (error) {
       throw new Error(`Cannot get user ${id}`, { cause: error });

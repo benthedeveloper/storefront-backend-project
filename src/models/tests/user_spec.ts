@@ -90,10 +90,13 @@ describe('User Model', () => {
 
     it('show method should return the correct User', async () => {
       const result = await store.show(String(testUser.id));
-      expect(result.id).toEqual(testUser.id);
-      expect(result.username).toEqual(testUser.username);
-      expect(result.firstName).toEqual(testUser.firstName);
-      expect(result.lastName).toEqual(testUser.lastName);
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.id).toEqual(testUser.id);
+        expect(result.username).toEqual(testUser.username);
+        expect(result.firstName).toEqual(testUser.firstName);
+        expect(result.lastName).toEqual(testUser.lastName);
+      }
     });
   });
 

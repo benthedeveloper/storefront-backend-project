@@ -2,7 +2,7 @@
   "name": "storefront_backend",
   "version": "0.1.0",
   "description": "",
-  "main": "server.ts",
+  "main": "src/server.ts",
   "scripts": {
     "start": "node --env-file=.env src/server.ts",
     "watch": "tsc-watch --project tsconfig.json --esModuleInterop --onSuccess \"node --env-file=.env ./dist/server.js\"",
@@ -29,6 +29,7 @@
     "jasmine-spec-reporter": "^7.0.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.22.0",
+    "supertest": "^7.2.2",
     "typescript": "^6.0.3"
   },
   "devDependencies": {
@@ -41,6 +42,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.0.1",
     "@types/pg": "^8.20.0",
+    "@types/supertest": "^7.2.0",
     "dotenv-cli": "^11.0.0",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
