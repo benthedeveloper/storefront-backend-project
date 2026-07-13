@@ -56,7 +56,12 @@ export const createOrder = async (req: Request, res: Response) => {
 // Update an existing order
 export const updateOrder = async (req: Request<GetOrderRouteParams>, res: Response) => {
   const { id } = req.params;
-  const { status } = req.body as UpdateOrderInput;
+  const { status, userId } = req.body as UpdateOrderInput;
+
+  if (!status && !userId) {
+    res.status(400).json({ error: 'At least one of status or userId is required' });
+    return;
+  }
 
   if (!isOrderStatus(status)) {
     res.status(400).json({ error: 'Invalid status' });
@@ -64,7 +69,10 @@ export const updateOrder = async (req: Request<GetOrderRouteParams>, res: Respon
   }
 
   try {
-    const updatedOrder = await store.update(id, { status });
+    const updatedOrder = await store.update(id, {
+      ...(status !== undefined && { status }),
+      ...(userId !== undefined && { userId }),
+    });
     if (!updatedOrder) {
       res.status(404).json({ error: 'Order not found' });
       return;
@@ -110,13 +118,12 @@ export const addProductToOrder = async (req: Request<GetOrderRouteParams>, res: 
     const orderProduct = await store.addProduct(quantity, orderId, productId);
     res.status(201).json(orderProduct);
   } catch (error) {
-    console.error('addProductToOrder error', error);
-
     if (error instanceof Error && error.message.includes('non-active')) {
       res.status(400).json({ error: error.message });
       return;
     }
 
+    console.error('addProductToOrder error', error);
     res.status(500).json({ error: 'Unable to add product to order' });
   }
 };

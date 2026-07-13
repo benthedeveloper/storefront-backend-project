@@ -30,12 +30,12 @@ describe('DashboardQueries', () => {
     testUser = await userStore.create(testUserToCreate);
 
     testProduct = await productStore.create({
-      name: `Dashboard product ${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      name: `Dashboard product A ${Math.floor(Math.random() * 1000000)}`,
       price: 12.34,
     });
 
     higherPriceProduct = await productStore.create({
-      name: `Dashboard product ${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      name: `Dashboard product B ${Math.floor(Math.random() * 1000000)}`,
       price: 45.67,
     });
 
