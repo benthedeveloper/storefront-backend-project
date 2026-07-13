@@ -37,6 +37,21 @@ export const getProduct = async (req: Request<GetProductRouteParams>, res: Respo
 // Create a new product
 export const createProduct = async (req: Request, res: Response) => {
   const { name, price }: CreateProductInput = req.body;
+
+  if (!name || !price) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  if (typeof name !== 'string') {
+    res.status(400).json({ error: 'Invalid name' });
+    return;
+  }
+
+  if (typeof price !== 'number' || price <= 0) {
+    res.status(400).json({ error: 'Invalid price' });
+    return;
+  }
+
   try {
     const newProduct = await store.create({ name, price });
     res.status(201).json(newProduct);
