@@ -92,14 +92,15 @@ export const authenticateUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: AuthenticatedRequest, res: Response) => {
   const idParam = req.params.id;
   const id = Array.isArray(idParam) ? idParam[0] : idParam;
+  const parsedId = Number(id);
 
-  if (!id) {
+  if (!id || !Number.isInteger(parsedId) || parsedId <= 0) {
     return res.status(400).json({ error: 'Invalid user id' });
   }
 
   const authenticatedUser = req.user;
 
-  if (!authenticatedUser || authenticatedUser.id !== Number(id)) {
+  if (!authenticatedUser || authenticatedUser.id !== parsedId) {
     return res.status(403).json({ error: 'You can only update your own account' });
   }
 
@@ -144,14 +145,15 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response) => {
 export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
   const idParam = req.params.id;
   const id = Array.isArray(idParam) ? idParam[0] : idParam;
+  const parsedId = Number(id);
 
-  if (!id) {
+  if (!id || !Number.isInteger(parsedId) || parsedId <= 0) {
     return res.status(400).json({ error: 'Invalid user id' });
   }
 
   const authenticatedUser = req.user;
 
-  if (!authenticatedUser || authenticatedUser.id !== Number(id)) {
+  if (!authenticatedUser || authenticatedUser.id !== parsedId) {
     return res.status(403).json({ error: 'You can only delete your own account' });
   }
 
