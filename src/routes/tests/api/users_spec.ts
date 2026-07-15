@@ -3,9 +3,10 @@ import jwt from 'jsonwebtoken';
 import app from '../../../app.ts';
 import { type User, UserStore } from '../../../models/user.ts';
 
-fdescribe('Users API Endpoints', () => {
+const userStore = new UserStore();
+
+describe('Users API Endpoints', () => {
   let SECRET: string;
-  const userStore = new UserStore();
 
   beforeAll(() => {
     SECRET = process.env.TOKEN_SECRET as string;
