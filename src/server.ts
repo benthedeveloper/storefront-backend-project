@@ -1,13 +1,9 @@
 import app from './app.ts';
 
-const { SERVER_PORT } = process.env;
+const PORT = process.env.PORT || process.env.SERVER_PORT || '3000';
 
-if (!SERVER_PORT) {
-  throw new Error('SERVER_PORT is not defined in the environment variables');
-}
+const address = `0.0.0.0:${PORT}`;
 
-const address: string = `0.0.0.0:${SERVER_PORT}`;
-
-app.listen(SERVER_PORT, () => {
-  console.log(`Starting app on: ${address}`);
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`Starting app on: http://${address}`);
 });
