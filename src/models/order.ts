@@ -75,6 +75,7 @@ export class OrderStore {
 
   // READ
   // Get all orders
+  // Note we could update this to return a Products array with each order object
   async index(): Promise<Order[]> {
     const conn = await client.connect();
     try {
@@ -89,6 +90,7 @@ export class OrderStore {
   }
 
   // Get order by id
+  // Note we could update this to return a Products array with each order object
   async show(id: string): Promise<Order | null> {
     const conn = await client.connect();
     try {

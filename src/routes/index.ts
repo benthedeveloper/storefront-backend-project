@@ -7,7 +7,6 @@ import dashboard from './api/dashboard.ts';
 const routes = express.Router();
 
 routes.get('/', (req, res) => {
-  // TODO update this?
   res.send('Main api route');
 });
 
