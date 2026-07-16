@@ -6,7 +6,7 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default defineConfig([
   {
-    ignores: ['dist/**', 'spec/**', 'eslint.config.ts'],
+    ignores: ['dist/**', 'spec/**', 'migrations/**', 'eslint.config.ts'],
   },
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
