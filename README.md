@@ -6,8 +6,10 @@
 2. Install NodeJS (this app has been tested on the latest LTS version, which is v24.18.0 as of July 2026). I recommend using [NVM (Node Version Manager)](nvmnode.com) to easily switch between different versions of Node for different projects as needed. This should also install NPM.
 3. Change directory to the repo `cd storefront-backend-project`, then install dependencies: Run `npm install`.
 4. Create a new environment variable file (named `.env`) in the root folder, refer to the `.env.example` file.
+    1. For local development, set `CORS_ORIGIN=http://localhost:3000` (assuming SERVER_PORT is set to 3000).
 5. Create another environment variable file named `.env.test` for running Jasmine tests.
     1. For `.env.test`, set `SERVER_PORT` to a different value than what is set in `.env`, and set `POSTGRES_DB` to a different "test" value than what is set in `.env`.
+    2. For local development, set `CORS_ORIGIN=http://localhost:3000` (assuming SERVER_PORT is set to 3000).
 6. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) if you have not yet done so, and make sure Docker Desktop is running.
 7. Run `docker compose up -d postgres` in a terminal to start the Docker container with the Postgres database.
 8. Run `npm run migrate:up` to run database migrations, which will create the tables in the POSTGRES_DB database set in the .env file.
