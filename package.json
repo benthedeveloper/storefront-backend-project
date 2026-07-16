@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node --env-file=.env src/server.ts",
     "watch": "tsc-watch --project tsconfig.json --esModuleInterop --onSuccess \"node --env-file=.env ./dist/server.js\"",
+    "migrate:up": "db-migrate up",
+    "migrate:down": "db-migrate down",
+    "migrate:reset": "db-migrate reset && db-migrate up",
     "migrate:test-db": "dotenv -e .env.test -- db-migrate up -e test",
     "prepare:test-db": "dotenv -e .env.test -- node --loader ts-node/esm ./src/prepare-test-db.ts",
     "test": "npm run prepare:test-db && npm run migrate:test-db && dotenv -e .env.test -- node --loader ts-node/esm ./node_modules/jasmine/bin/jasmine.js --config=spec/support/jasmine.json",
