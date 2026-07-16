@@ -59,8 +59,8 @@ export class OrderStore {
     const conn = await client.connect();
     try {
       const sql = `
-        INSERT INTO orders (status, user_id) 
-        VALUES ($1, $2) 
+        INSERT INTO orders (status, user_id)
+        VALUES ($1, $2)
         RETURNING *;
       `;
       const values = [validatedStatus, newOrder.userId];

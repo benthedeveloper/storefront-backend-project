@@ -1,5 +1,6 @@
 import { type Request, type Response } from 'express';
 import { ProductStore, type CreateProductInput, type UpdateProductInput } from '../models/product.ts';
+import { handleServerError } from '../helpers/errorHandler.ts';
 
 interface GetProductRouteParams {
   id: string;
@@ -13,8 +14,7 @@ export const index = async (_req: Request, res: Response) => {
     const allProducts = await store.index();
     res.status(200).json(allProducts);
   } catch (error) {
-    console.error('index error', error);
-    res.status(500).json({ error: 'Unable to fetch products' });
+    return handleServerError(res, error, 'Unable to fetch products');
   }
 };
 
@@ -29,8 +29,7 @@ export const getProduct = async (req: Request<GetProductRouteParams>, res: Respo
     }
     res.status(200).json(product);
   } catch (error) {
-    console.error('getProduct error', error);
-    res.status(500).json({ error: 'Unable to fetch product' });
+    return handleServerError(res, error, 'Unable to fetch product');
   }
 };
 
@@ -56,8 +55,7 @@ export const createProduct = async (req: Request, res: Response) => {
     const newProduct = await store.create({ name, price });
     res.status(201).json(newProduct);
   } catch (error) {
-    console.error('createProduct error', error);
-    res.status(500).json({ error: 'Unable to create product' });
+    return handleServerError(res, error, 'Unable to create product');
   }
 };
 
@@ -85,8 +83,7 @@ export const updateProduct = async (req: Request<GetProductRouteParams>, res: Re
 
     res.status(200).json(updatedProduct);
   } catch (error) {
-    console.error('updateProduct error', error);
-    res.status(500).json({ error: 'Unable to update product' });
+    return handleServerError(res, error, 'Unable to update product');
   }
 };
 
@@ -101,7 +98,6 @@ export const deleteProduct = async (req: Request<GetProductRouteParams>, res: Re
 
     res.status(204).send();
   } catch (error) {
-    console.error('deleteProduct error', error);
-    res.status(500).json({ error: 'Unable to delete product' });
+    return handleServerError(res, error, 'Unable to delete product');
   }
 };

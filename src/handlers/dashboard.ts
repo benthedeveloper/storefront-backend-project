@@ -1,5 +1,6 @@
 import { type Request, type Response } from 'express';
 import { DashboardQueries } from '../services/dashboard.ts';
+import { handleServerError } from '../helpers/errorHandler.ts';
 
 const DEFAULT_PRODUCT_LIMIT = 5;
 
@@ -10,8 +11,7 @@ export const productsInOrders = async (_req: Request, res: Response) => {
     const products = await dashboard.productsInOrders();
     res.status(200).json(products);
   } catch (error) {
-    console.error('productsInOrders error', error);
-    res.status(500).json({ error: 'Failed to fetch products in orders' });
+    return handleServerError(res, error, 'Failed to fetch products in orders');
   }
 };
 
@@ -20,8 +20,7 @@ export const usersWithOrders = async (req: Request, res: Response) => {
     const users = await dashboard.usersWithOrders();
     res.status(200).json(users);
   } catch (error) {
-    console.error('usersWithOrders error', error);
-    res.status(500).json({ error: 'Failed to fetch all users with orders' });
+    return handleServerError(res, error, 'Failed to fetch all users with orders');
   }
 };
 
@@ -40,8 +39,7 @@ export const getMostExpensiveProducts = async (req: Request, res: Response) => {
     const mostExpensiveProducts = await dashboard.getMostExpensiveProducts(limit);
     res.status(200).json(mostExpensiveProducts);
   } catch (error) {
-    console.error('getMostExpensiveProducts error', error);
-    res.status(500).json({ error: `Failed to get the ${limit} most expensive products in descending order` });
+    return handleServerError(res, error, `Failed to get the ${limit} most expensive products in descending order`);
   }
 };
 

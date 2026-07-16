@@ -1,6 +1,7 @@
 import { type Request, type Response } from 'express';
 import { OrderStore, type CreateOrderInput, type UpdateOrderInput } from '../models/order.ts';
 import { isOrderStatus } from '../models/orderStatus.ts';
+import { handleServerError } from '../helpers/errorHandler.ts';
 
 interface GetOrderRouteParams {
   id: string;
@@ -14,8 +15,7 @@ export const index = async (_req: Request, res: Response) => {
     const allOrders = await store.index();
     res.status(200).json(allOrders);
   } catch (error) {
-    console.error('index error', error);
-    res.status(500).json({ error: 'Unable to fetch orders' });
+    return handleServerError(res, error, 'Unable to fetch orders');
   }
 };
 
@@ -30,14 +30,18 @@ export const getOrder = async (req: Request<GetOrderRouteParams>, res: Response)
     }
     res.status(200).json(order);
   } catch (error) {
-    console.error('getOrder error', error);
-    res.status(500).json({ error: 'Unable to fetch order' });
+    return handleServerError(res, error, 'Unable to fetch order');
   }
 };
 
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
   const { status, userId }: CreateOrderInput = req.body;
+
+  if (!userId) {
+    res.status(400).json({ error: 'userId is required' });
+    return;
+  }
 
   if (!isOrderStatus(status)) {
     res.status(400).json({ error: 'Invalid status' });
@@ -48,8 +52,7 @@ export const createOrder = async (req: Request, res: Response) => {
     const newOrder = await store.create({ status, userId });
     res.status(201).json(newOrder);
   } catch (error) {
-    console.error('createOrder error', error);
-    res.status(500).json({ error: 'Unable to create order' });
+    return handleServerError(res, error, 'Unable to create order');
   }
 };
 
@@ -80,8 +83,7 @@ export const updateOrder = async (req: Request<GetOrderRouteParams>, res: Respon
 
     res.status(200).json(updatedOrder);
   } catch (error) {
-    console.error('updateOrder error', error);
-    res.status(500).json({ error: 'Unable to update order' });
+    return handleServerError(res, error, 'Unable to update order');
   }
 };
 
@@ -96,8 +98,7 @@ export const deleteOrder = async (req: Request<GetOrderRouteParams>, res: Respon
 
     res.status(204).send();
   } catch (error) {
-    console.error('deleteOrder error', error);
-    res.status(500).json({ error: 'Unable to delete order' });
+    return handleServerError(res, error, 'Unable to delete order');
   }
 };
 
@@ -123,8 +124,7 @@ export const addProductToOrder = async (req: Request<GetOrderRouteParams>, res: 
       return;
     }
 
-    console.error('addProductToOrder error', error);
-    res.status(500).json({ error: 'Unable to add product to order' });
+    return handleServerError(res, error, 'Unable to add product to order');
   }
 };
 
@@ -138,7 +138,6 @@ export const removeProductFromOrder = async (req: Request<{ id: string; productI
     }
     res.status(204).send();
   } catch (error) {
-    console.error('removeProductFromOrder error', error);
-    res.status(500).json({ error: 'Unable to remove product from order' });
+    return handleServerError(res, error, 'Unable to remove product from order');
   }
 };

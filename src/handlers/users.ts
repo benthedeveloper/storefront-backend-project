@@ -2,6 +2,7 @@ import { type Request, type Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { type AuthenticatedRequest } from '../middleware/auth.middleware.ts';
 import { UserStore, type CreateUserInput, type UpdateUserInput } from '../models/user.ts';
+import { handleServerError } from '../helpers/errorHandler.ts';
 
 interface GetUserRouteParams {
   id: string;
@@ -15,8 +16,7 @@ export const index = async (_req: Request, res: Response) => {
     const allUsers = await store.index();
     res.status(200).json(allUsers);
   } catch (error) {
-    console.error('index error', error);
-    res.status(500).json({ error: 'Unable to fetch users' });
+    return handleServerError(res, error, 'Unable to fetch users');
   }
 };
 
@@ -32,8 +32,7 @@ export const getUser = async (req: Request<GetUserRouteParams>, res: Response) =
 
     res.status(200).json(foundUser);
   } catch (error) {
-    console.error('getUserById error', error);
-    res.status(500).json({ error: 'Unable to fetch user' });
+    return handleServerError(res, error, 'Unable to fetch user');
   }
 };
 
@@ -59,8 +58,7 @@ export const createUser = async (req: Request, res: Response) => {
 
     res.status(201).json({ user: createdUser, token });
   } catch (error) {
-    console.error('createUser error', error);
-    res.status(500).json({ error: 'Unable to create user' });
+    return handleServerError(res, error, 'Unable to create user');
   }
 };
 
@@ -83,8 +81,7 @@ export const authenticateUser = async (req: Request, res: Response) => {
 
     res.status(200).json({ user: authenticatedUser, token });
   } catch (error) {
-    console.error('authenticateUser error:', error);
-    res.status(500).json({ error: 'There was an error authenticating the user' });
+    return handleServerError(res, error, 'There was an error authenticating the user');
   }
 };
 
@@ -137,7 +134,7 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response) => {
     res.status(200).json(updatedUser);
   } catch (error) {
     console.error('updateUser error', error);
-    res.status(500).json({ error: 'Unable to update user' });
+    return handleServerError(res, error, 'Unable to update user');
   }
 };
 
@@ -165,7 +162,6 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    console.error('deleteUser error', error);
-    res.status(500).json({ error: 'Unable to delete user' });
+    return handleServerError(res, error, 'Unable to delete user');
   }
 };

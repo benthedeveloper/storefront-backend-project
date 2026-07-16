@@ -10,7 +10,6 @@ const orderStore = new OrderStore();
 const productStore = new ProductStore();
 const userStore = new UserStore();
 
-// TODO NEED TO REFACTOR TO USE SEED
 describe('Orders API Endpoints', () => {
   let testUser: User;
   let anotherTestUser: User;
