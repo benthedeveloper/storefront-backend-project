@@ -14,8 +14,9 @@
 9. In another terminal, run `npm run watch` to start the server on localhost.
     1. If SERVER_PORT is set to `3000` in .env for example, then if you open a browser at `http://localhost:3000/api`, then you should see message "Main api route" in your browser.
 10. You may now make calls to the API. Refer to the [REQUIREMENTS.md](REQUIREMENTS.md) document for how to use the API.
+11. *Note:* Token expiration is set to 1 hour. If you attempt to make a call to a protected route (such as create a new product), and your token is expired, you will get an error response: `"error": "Invalid or expired token."`. If that happens, then you must make a call to the `/api/users/authenticate` route with the correct username/password (or create a new user) to get a new Bearer token, copy that, and include it in the Authorization headers of your requests to protected routes.
 
-I recommend installing Postman or any similar API platform for testing API routes.
+I recommend installing Postman or any similar API platform for testing API routes. You can set up Postman to use a Post-response script for the user create/authenticate routes to set a JWT token variable, which can be used for the protected routes, so you don't have to copy and update the authorization headers for protected routes, which is tedious.
 
 ## Technologies
 
