@@ -1,3 +1,5 @@
+process.env.ENV = 'test';
+
 import { DisplayProcessor, SpecReporter, StacktraceOption } from 'jasmine-spec-reporter';
 
 class CustomProcessor extends DisplayProcessor {
