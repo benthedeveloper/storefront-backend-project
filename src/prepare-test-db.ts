@@ -1,9 +1,9 @@
 import { Client } from 'pg';
 
 async function main(): Promise<void> {
-  const dbName = process.env.POSTGRES_DB;
+  const dbName = process.env.POSTGRES_TEST_DB;
   if (!dbName) {
-    throw new Error('POSTGRES_DB is not defined');
+    throw new Error('POSTGRES_TEST_DB is not defined');
   }
 
   const client = new Client({

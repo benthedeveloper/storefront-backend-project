@@ -134,14 +134,16 @@ describe('Orders API Endpoints', () => {
     });
 
     it('should fetch a single order by id', async () => {
-      const response = await request(app).get(`/api/orders/${testOrder.id}`);
+      const response = await request(app)
+        .get(`/api/orders/${testOrder.id}`)
+        .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.id).toBe(testOrder.id);
     });
 
     it('should return 404 for a order that does not exist', async () => {
-      const response = await request(app).get('/api/orders/99999');
+      const response = await request(app).get('/api/orders/99999').set('Authorization', `Bearer ${authToken}`);
       expect(response.status).toBe(404);
     });
   });
@@ -149,7 +151,7 @@ describe('Orders API Endpoints', () => {
   // Test GET /api/orders (Public index route)
   describe('GET /api/orders', () => {
     it('should fetch all orders', async () => {
-      const response = await request(app).get('/api/orders');
+      const response = await request(app).get('/api/orders').set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
