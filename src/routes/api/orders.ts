@@ -14,10 +14,10 @@ import {
 const orders = Router();
 
 // Index route
-orders.get('/', index);
+orders.get('/', authenticateToken, index);
 
 // Show route
-orders.get('/:id', getOrder);
+orders.get<{ id: string }>('/:id', authenticateToken, getOrder);
 
 // Create route - protected by authentication middleware
 orders.post('/', authenticateToken, createOrder);
